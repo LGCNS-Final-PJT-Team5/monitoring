@@ -1,0 +1,5 @@
+# admin-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: admin-service-monitoring
+description: Helm chart for Prometheus monitoring of admin-service 
+version: 0.1.0 
