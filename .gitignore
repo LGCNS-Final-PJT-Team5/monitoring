@@ -1,0 +1,5 @@
+# VSCode 설정
+.vscode/
+
+# MacOS
+.DS_Store
