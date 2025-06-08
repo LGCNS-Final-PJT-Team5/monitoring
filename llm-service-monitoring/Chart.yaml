@@ -1,0 +1,5 @@
+# llm-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: llm-service-monitoring
+description: Helm chart for Prometheus monitoring of llm-service 
+version: 0.1.0 
