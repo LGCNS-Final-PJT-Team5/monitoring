@@ -1,0 +1,5 @@
+# reward-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: reward-service-monitoring
+description: Helm chart for Prometheus monitoring of reward-service 
+version: 0.1.0 
