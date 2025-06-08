@@ -1,0 +1,5 @@
+# dashboard-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: dashboard-service-monitoring
+description: Helm chart for Prometheus monitoring of dashboard-service 
+version: 0.1.0 
