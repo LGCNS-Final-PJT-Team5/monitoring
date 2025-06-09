@@ -1,0 +1,63 @@
+# agent-service-monitoring/templates/prometheusrule.yaml
+{{- if .Values.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: agent-service-alerts
+  labels:
+    app: agent-service
+    release: {{ .Values.release | default "prometheus" }}
+spec:
+  groups:
+    - name: agent.rules
+      rules:
+        {{- range $alertName, $alert := .Values.alerts.serviceAlerts }}
+        {{- if eq $alertName "high5xxRate" }}
+        - alert: HighAgent5xxRate
+          expr: sum(rate(http_server_requests_seconds_count{job="agent-service", status=~"5.."}[1m])) > {{ $alert.threshold }}
+          for: {{ $alert.duration }}
+          labels:
+            severity: {{ $alert.severity }}
+            service: agent-service
+          annotations:
+            summary: "5xx 오류 비율 초과"
+            description: "최근 {{ $alert.duration }} 동안 agent-service에서 초당 평균 {{ $alert.threshold }}건 이상의 5xx 오류가 발생했습니다."
+        {{- end }}
+        {{- if eq $alertName "highLatency" }}
+        - alert: HighAgentLatency
+          expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job="agent-service"}[1m])) by (le)) > {{ $alert.threshold }}
+          for: {{ $alert.duration }}
+          labels:
+            severity: {{ $alert.severity }}
+            service: agent-service
+          annotations:
+            summary: "응답 지연 초과"
+            description: "최근 {{ $alert.duration }} 동안 agent-service의 요청 중 상위 95%의 응답시간이 {{ $alert.threshold }}초를 초과했습니다."
+        {{- end }}
+        {{- if eq $alertName "trafficSpike" }}
+        - alert: AgentTrafficSpike
+          expr: sum(rate(http_server_requests_seconds_count{job="agent-service"}[1m])) > {{ $alert.threshold }}
+          for: {{ $alert.duration }}
+          labels:
+            severity: {{ $alert.severity }}
+            service: agent-service
+          annotations:
+            summary: "요청량 급증"
+            description: "agent-service에 대한 요청이 초당 {{ $alert.threshold }}건을 초과하고 있으며, 해당 현상이 {{ $alert.duration }} 이상 지속되고 있습니다."
+        {{- end }}
+        {{- end }}
+
+        {{- range $alertName, $alert := .Values.alerts.criticalAlerts }}
+        {{- if eq $alertName "crashLooping" }}
+        - alert: AgentPodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="agent-service"}[5m]) > {{ $alert.threshold }}
+          for: {{ $alert.duration }}
+          labels:
+            severity: {{ $alert.severity }}
+            service: agent-service
+          annotations:
+            summary: "Pod 재시작 반복 감지"
+            description: "agent-service 네임스페이스에서 최근 {{ $alert.duration }} 동안 컨테이너 재시작이 {{ $alert.threshold }}회 이상 발생하고 있습니다."
+        {{- end }}
+        {{- end }}
+{{- end }}

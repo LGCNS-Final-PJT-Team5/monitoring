@@ -1,0 +1,63 @@
+# flink-monitoring/values.yaml
+
+release: prometheus
+
+# CloudWatch Exporter 설정 (dependencies로 관리)
+cloudwatchExporter:
+  enabled: true
+
+# CloudWatch Exporter 하위 차트 설정
+prometheus-cloudwatch-exporter:
+  config: |
+    region: ap-northeast-2
+    metrics:
+      # 기본 애플리케이션 상태 (가장 중요)
+      - aws_namespace: AWS/KinesisAnalytics
+        aws_metric_name: uptime
+        aws_dimensions: [Application]
+        aws_statistics: [Average]
+        aws_dimension_select:
+          Application: ["event-detector"]
+      
+      # 애플리케이션 재시작 모니터링
+      - aws_namespace: AWS/KinesisAnalytics
+        aws_metric_name: fullRestarts
+        aws_dimensions: [Application] 
+        aws_statistics: [Sum]
+        aws_dimension_select:
+          Application: ["event-detector"]
+      
+      # CPU 사용률 (리소스 모니터링)
+      - aws_namespace: AWS/KinesisAnalytics
+        aws_metric_name: cpuUtilization
+        aws_dimensions: [Application]
+        aws_statistics: [Average]
+        aws_dimension_select:
+          Application: ["event-detector"]
+  
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: prometheus
+    interval: 5m  # 5분 간격으로 비용 최적화
+
+# 알림 설정
+alerts: 
+  enabled: true
+  # Flink 앱 다운 (가장 중요한 알림)
+  applicationDown:
+    duration: 5m 
+    severity: critical
+    threshold: 0.8  # uptime < 80%
+  
+  # CPU 사용률 높음
+  highCpuUsage:
+    duration: 10m
+    severity: warning 
+    threshold: 80   # CPU > 80%
+  
+  # 재시작 감지
+  restartDetected:
+    duration: 1m
+    severity: critical
+    threshold: 0    # fullRestarts > 0

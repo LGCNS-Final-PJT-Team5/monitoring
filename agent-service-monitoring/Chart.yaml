@@ -1,0 +1,5 @@
+# agent-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: agent-service-monitoring
+description: Helm chart for Prometheus monitoring of agent-service 
+version: 0.1.0 

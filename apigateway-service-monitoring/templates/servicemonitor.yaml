@@ -1,0 +1,25 @@
+# apigateway-service-monitoring/templates/servicemonitor.yaml
+
+{{- if .Values.serviceMonitor.enabled }}
+
+# Prometheus Operator가 서비스를 모니터링할 수 있도록 정의하는 커스텀 리소스
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apigateway-service-monitor  # 생성될 ServiceMonitor 리소스의 이름
+  labels:
+    app: apigateway-service         # Prometheus의 serviceMonitorSelector와 매칭될 라벨
+    release: {{ .Values.release | default "prometheus" }}        # Prometheus의 serviceMonitorSelector.matchLabels와 일치하도록 release 라벨 설정
+
+spec:
+  selector:
+    matchLabels:
+      # 어떤 Kubernetes Service를 모니터링할지 결정하는 라벨
+{{ toYaml .Values.serviceMonitor.matchLabels | indent 6 }}
+  endpoints:
+    - port: {{ .Values.serviceMonitor.port }}               # 메트릭을 수집할 서비스 포트 이름
+      path: {{ .Values.serviceMonitor.path }}               # 메트릭을 가져올 HTTP 경로
+      interval: {{ .Values.serviceMonitor.interval }}       # 메트릭 수집 주기
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }} # 한 번의 수집에서 기다릴 최대 시간
+
+{{- end }}

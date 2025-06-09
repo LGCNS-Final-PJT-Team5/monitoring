@@ -1,0 +1,5 @@
+# auth-service-monitoring/Chart.yaml 
+apiVersion: v2
+name: auth-service-monitoring
+description: Helm chart for Prometheus monitoring of auth-service 
+version: 0.1.0 

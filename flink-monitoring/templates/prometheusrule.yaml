@@ -1,0 +1,46 @@
+# flink-monitoring/templates/prometheusrule.yaml
+{{- if .Values.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flink-alerts
+  labels:
+    app: flink
+    release: {{ .Values.release | default "prometheus" }}
+spec:
+  groups:
+    - name: flink.rules
+      rules:
+        # Flink 애플리케이션 다운 알림 (가장 중요)
+        - alert: FlinkApplicationDown
+          expr: aws_kinesis_analytics_uptime_average{application="event-detector"} < {{ .Values.alerts.applicationDown.threshold }}
+          for: {{ .Values.alerts.applicationDown.duration }}
+          labels:
+            severity: {{ .Values.alerts.applicationDown.severity }}
+            service: flink
+          annotations:
+            summary: "Flink 애플리케이션 다운 감지"
+            description: "event-detector Flink 애플리케이션의 가동률이 {{ .Values.alerts.applicationDown.threshold }}% 미만으로 {{ .Values.alerts.applicationDown.duration }} 이상 지속되고 있습니다."
+
+        # CPU 사용률 높음 알림
+        - alert: FlinkHighCpuUsage
+          expr: aws_kinesis_analytics_cpu_utilization_average{application="event-detector"} > {{ .Values.alerts.highCpuUsage.threshold }}
+          for: {{ .Values.alerts.highCpuUsage.duration }}
+          labels:
+            severity: {{ .Values.alerts.highCpuUsage.severity }}
+            service: flink
+          annotations:
+            summary: "Flink CPU 사용률 높음"
+            description: "event-detector Flink 애플리케이션의 CPU 사용률이 {{ .Values.alerts.highCpuUsage.threshold }}%를 초과하여 {{ .Values.alerts.highCpuUsage.duration }} 이상 지속되고 있습니다."
+
+        # 애플리케이션 재시작 감지
+        - alert: FlinkApplicationRestart
+          expr: increase(aws_kinesis_analytics_full_restarts_sum{application="event-detector"}[15m]) > {{ .Values.alerts.restartDetected.threshold }}
+          for: {{ .Values.alerts.restartDetected.duration }}
+          labels:
+            severity: {{ .Values.alerts.restartDetected.severity }}
+            service: flink
+          annotations:
+            summary: "Flink 애플리케이션 재시작 감지"
+            description: "event-detector Flink 애플리케이션이 최근 15분 내에 재시작되었습니다. 애플리케이션 상태를 확인해주세요."
+{{- end }}
