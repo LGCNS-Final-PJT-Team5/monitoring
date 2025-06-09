@@ -1,0 +1,32 @@
+config: |
+  region: ap-northeast-2
+  metrics:
+    # 기본 애플리케이션 상태 (가장 중요)
+    - aws_namespace: AWS/KinesisAnalytics
+      aws_metric_name: uptime
+      aws_dimensions: [Application]
+      aws_statistics: [Average]
+      aws_dimension_select:
+        Application: ["event-detector"]
+    
+    # 애플리케이션 재시작 모니터링
+    - aws_namespace: AWS/KinesisAnalytics
+      aws_metric_name: fullRestarts
+      aws_dimensions: [Application] 
+      aws_statistics: [Sum]
+      aws_dimension_select:
+        Application: ["event-detector"]
+    
+    # CPU 사용률 (리소스 모니터링)
+    - aws_namespace: AWS/KinesisAnalytics
+      aws_metric_name: cpuUtilization
+      aws_dimensions: [Application]
+      aws_statistics: [Average]
+      aws_dimension_select:
+        Application: ["event-detector"]
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+  interval: 5m  # 5분 간격으로 비용 최적화

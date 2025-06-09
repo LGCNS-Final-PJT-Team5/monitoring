@@ -1,0 +1,11 @@
+# flink-monitoring/Chart.yaml 
+apiVersion: v2
+name: flink-monitoring
+description: Helm chart for Prometheus monitoring of AWS Managed Flink 
+version: 0.1.0 
+
+dependencies:
+  - name: prometheus-cloudwatch-exporter
+    version: "0.25.3"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: cloudwatchExporter.enabled
